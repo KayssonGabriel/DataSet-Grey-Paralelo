@@ -4,17 +4,11 @@ cmake_minimum_required(VERSION 3.29)
 # Nome do projeto
 project(DataSetGrey_Cuda LANGUAGES CXX CUDA)
 
-# Definir o padrão C++17 e CUDA 11
+# Definir o padrão C++17 para os fontes C++ e CUDA
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_STANDARD 11)
+set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
-# Configurar o Vcpkg
-set(CMAKE_TOOLCHAIN_FILE "C:/Users/kayss/vcpkg/scripts/buildsystems/vcpkg.cmake")
-
-# Habilitar suporte à linguagem CUDA
-enable_language(CUDA)
 
 # Adicionar o arquivo fonte principal
 add_executable(DataSetGrey_Cuda main.cu)

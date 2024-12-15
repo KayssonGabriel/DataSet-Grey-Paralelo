@@ -4,24 +4,24 @@
 #include <cuda_runtime.h>
 #include <jpeglib.h>
 #include <chrono>
-#include <windows.h> // Para CreateDirectory no Windows
+#include <filesystem>
+#include <memory>
+#include <stdexcept>
 
-// Definir o caminho do arquivo de imagem aqui (não o diretório)
-const std::string image_path =
-    "C:/Users/kayss/OneDrive/Documentos/6 periodo/Programacao Paralela/src/DataSetGrey Cuda/Imagens/IMAGEM.jpg";
+namespace fs = std::filesystem;
 
 // Kernel CUDA para converter uma imagem para tons de cinza
 __global__ void convertToGrayscaleKernel(unsigned char* image, int rows, int cols)
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < rows && j < cols)
     {
         unsigned char* pixel = &image[(i * cols + j) * 3];
-        unsigned char blue = pixel[0];
+        unsigned char red = pixel[0];
         unsigned char green = pixel[1];
-        unsigned char red = pixel[2];
+        unsigned char blue = pixel[2];
 
         unsigned char gray = static_cast<unsigned char>(red * 0.298 + green * 0.587 + blue * 0.114);
 
@@ -70,9 +70,9 @@ bool readJPEG(const std::string& filename, std::vector<unsigned char>& image, in
         jpeg_read_scanlines(&cinfo, &row_pointer, 1);
         for (int col = 0; col < cols; ++col)
         {
-            image[(row * cols + col) * 3 + 0] = row_pointer[col * channels];     // Blue
-            image[(row * cols + col) * 3 + 1] = row_pointer[col * channels + 1]; // Green
-            image[(row * cols + col) * 3 + 2] = row_pointer[col * channels + 2]; // Red
+            image[(row * cols + col) * 3 + 0] = row_pointer[col * channels];
+            image[(row * cols + col) * 3 + 1] = row_pointer[col * channels + 1];
+            image[(row * cols + col) * 3 + 2] = row_pointer[col * channels + 2];
         }
     }
 
@@ -115,9 +115,9 @@ void saveJPEG(const std::string& filename, const std::vector<unsigned char>& ima
         int row = cinfo.next_scanline;
         for (int col = 0; col < cols; ++col)
         {
-            row_pointer[col * 3] = image[(row * cols + col) * 3 + 0];     // Blue
-            row_pointer[col * 3 + 1] = image[(row * cols + col) * 3 + 1]; // Green
-            row_pointer[col * 3 + 2] = image[(row * cols + col) * 3 + 2]; // Red
+            row_pointer[col * 3] = image[(row * cols + col) * 3 + 0];
+            row_pointer[col * 3 + 1] = image[(row * cols + col) * 3 + 1];
+            row_pointer[col * 3 + 2] = image[(row * cols + col) * 3 + 2];
         }
         jpeg_write_scanlines(&cinfo, &row_pointer, 1);
     }
@@ -128,22 +128,17 @@ void saveJPEG(const std::string& filename, const std::vector<unsigned char>& ima
     fclose(outfile);
 }
 
-// Função para criar diretório de saída no Windows
-void createOutputDirectory(const std::string& output_directory)
+void verificarCuda(cudaError_t status, const char* operacao)
 {
-    if (CreateDirectory(output_directory.c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)
-    {
-        //std::cout << "Diretório criado: " << output_directory << std::endl;
-    }
-    else
-    {
-        std::cerr << "Erro ao criar diretório: " << output_directory << std::endl;
-        exit(1);
+    if (status != cudaSuccess) {
+        throw std::runtime_error(std::string(operacao) + ": " + cudaGetErrorString(status));
     }
 }
 
-int main()
+int main(int argc, char* argv[]) try
 {
+    const std::string image_path = argc > 1 ? argv[1] : "Imagens/IMAGEM.jpg";
+    const fs::path output_root = argc > 2 ? argv[2] : "Imagens";
     auto start_time = std::chrono::high_resolution_clock::now();
 
     // Ler a imagem original
@@ -168,15 +163,12 @@ int main()
         auto start_interval_time = std::chrono::high_resolution_clock::now();
 
         // Criar diretório de saída
-        std::string output_directory =
-            "C:/Users/kayss/OneDrive/Documentos/6 periodo/Programacao Paralela/src/DataSetGrey Cuda/Imagens/out_" +
-            std::to_string(quantity);
-        createOutputDirectory(output_directory);
+        const fs::path output_directory = output_root / ("out_" + std::to_string(quantity));
+        fs::create_directories(output_directory);
 
-        // Alocar memória para a imagem na GPU
-        unsigned char* d_image;
-        cudaMalloc(&d_image, image.size() * sizeof(unsigned char));
-        cudaMemcpy(d_image, image.data(), image.size() * sizeof(unsigned char), cudaMemcpyHostToDevice);
+        unsigned char* d_image = nullptr;
+        verificarCuda(cudaMalloc(&d_image, image.size()), "alocar imagem na GPU");
+        std::unique_ptr<unsigned char, decltype(&cudaFree)> buffer(d_image, cudaFree);
 
         // Configuração dos blocos e threads
         dim3 threadsPerBlock(16, 16);
@@ -185,18 +177,16 @@ int main()
         // Processar e salvar as imagens
         for (int i = 0; i < quantity; ++i)
         {
+            verificarCuda(cudaMemcpy(d_image, image.data(), image.size(), cudaMemcpyHostToDevice), "enviar imagem");
             convertToGrayscaleKernel<<<numBlocks, threadsPerBlock>>>(d_image, rows, cols);
-            cudaDeviceSynchronize();
+            verificarCuda(cudaGetLastError(), "lançar conversão CUDA");
 
             std::vector<unsigned char> image_copy(image.size());
-            cudaMemcpy(image_copy.data(), d_image, image.size() * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+            verificarCuda(cudaMemcpy(image_copy.data(), d_image, image.size(), cudaMemcpyDeviceToHost), "receber imagem");
 
-            std::string output_path = output_directory + "/IMAGEM_" + std::to_string(i + 1) + "_converted.jpg";
-            saveJPEG(output_path, image_copy, rows, cols);
+            const fs::path output_path = output_directory / ("IMAGEM_" + std::to_string(i + 1) + "_converted.jpg");
+            saveJPEG(output_path.string(), image_copy, rows, cols);
         }
-
-        // Liberar memória da GPU
-        cudaFree(d_image);
 
         auto end_interval_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> interval_elapsed_time = end_interval_time - start_interval_time;
@@ -208,4 +198,7 @@ int main()
     std::cout << "Tempo total: " << elapsed_time.count() << " segundos" << std::endl;
 
     return 0;
+} catch (const std::exception& erro) {
+    std::cerr << erro.what() << std::endl;
+    return 1;
 }
