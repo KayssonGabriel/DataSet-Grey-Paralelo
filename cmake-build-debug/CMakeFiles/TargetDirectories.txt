@@ -1,0 +1,3 @@
+C:/Users/kayss/OneDrive/Documentos/6 periodo/Programacao Paralela/src/DataSetGrey Cuda/cmake-build-debug/CMakeFiles/DataSetGrey_Cuda.dir
+C:/Users/kayss/OneDrive/Documentos/6 periodo/Programacao Paralela/src/DataSetGrey Cuda/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/kayss/OneDrive/Documentos/6 periodo/Programacao Paralela/src/DataSetGrey Cuda/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,4 @@
+E:\JB\CLion\bin\cmake\win\x64\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=E:/JB/CLion/bin/ninja/win/x64/ninja.exe -DCMAKE_TOOLCHAIN_FILE=C:/Users/kayss/vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja -S "C:\Users\kayss\OneDrive\Documentos\6 periodo\Programacao Paralela\src\DataSetGrey Cuda" -B "C:\Users\kayss\OneDrive\Documentos\6 periodo\Programacao Paralela\src\DataSetGrey Cuda\cmake-build-debug"
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/Users/kayss/OneDrive/Documentos/6 periodo/Programacao Paralela/src/DataSetGrey Cuda/cmake-build-debug

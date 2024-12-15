@@ -1,0 +1,13 @@
+# ninja log v6
+3	8138	7542000672509695	CMakeFiles/DataSetGrey_Cuda.dir/main.cu.obj	e3d6a263fdc971ab
+5555	6960	7541986680662563	DataSetGrey_Cuda.exe	62bd1a46a53b2756
+6	6472	7542003205566750	CMakeFiles/DataSetGrey_Cuda.dir/main.cu.obj	e3d6a263fdc971ab
+6472	7475	7542003270222960	DataSetGrey_Cuda.exe	62bd1a46a53b2756
+11	9048	7542008386501051	CMakeFiles/DataSetGrey_Cuda.dir/main.cu.obj	e3d6a263fdc971ab
+9049	10639	7542008476876916	DataSetGrey_Cuda.exe	62bd1a46a53b2756
+5	6675	7542009333667197	CMakeFiles/DataSetGrey_Cuda.dir/main.cu.obj	e3d6a263fdc971ab
+6676	7706	7542009400373931	DataSetGrey_Cuda.exe	62bd1a46a53b2756
+6	10395	7542010681682336	CMakeFiles/DataSetGrey_Cuda.dir/main.cu.obj	e3d6a263fdc971ab
+10395	11397	7542010785580094	DataSetGrey_Cuda.exe	62bd1a46a53b2756
+496	24080	7559645932638909	CMakeFiles/DataSetGrey_Cuda.dir/main.cu.obj	e3d6a263fdc971ab
+24081	27431	7559646166965076	DataSetGrey_Cuda.exe	62bd1a46a53b2756
